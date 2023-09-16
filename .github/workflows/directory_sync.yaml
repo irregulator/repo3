@@ -1,0 +1,49 @@
+---
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'target_directory/**'
+
+jobs:
+  create-pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create PR to remote repository
+        run: |
+          LATEST_COMMIT=$(git rev-parse HEAD)
+          TARGET_REPO="irregulator/repo8"
+          CLONE_DIR="bin/$TARGET_REPO"
+          BRANCH_NAME="sync_to_$LATEST_COMMIT"
+          COPY_DIR="target_directory"
+
+          git clone \
+            --depth=1 \
+            --branch=main \
+            https://irregulator:${{ secrets.ACCESS_TOKEN }}@github.com/$TARGET_REPO \
+            $CLONE_DIR
+
+          cd $CLONE_DIR
+
+          git config user.email "bot@irregulator"
+          git config user.name "Irregular Bot"
+
+          git checkout -b $BRANCH_NAME
+
+          cp -r ../../../$COPY_DIR .
+
+          git add .
+          git commit -m "$COPY_DIR: sync to repo3's $LATEST_COMMIT"
+          git push origin $BRANCH_NAME
+
+          echo "${{ secrets.ACCESS_TOKEN }}" > token.txt
+
+          gh auth login --with-token < token.txt
+          gh pr create \
+            --body "" \
+            --title "$COPY_DIR: sync to repo3 $LATEST_COMMIT" \
+            --head "$BRANCH_NAME" \
+            --base "main"
