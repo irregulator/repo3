@@ -43,7 +43,8 @@ jobs:
 
           gh auth login --with-token < token.txt
           gh pr create \
-            --body "" \
-            --title "$COPY_DIR: sync to repo3 $LATEST_COMMIT" \
+            --body "Sync $COPY_DIR to repo3's $LATEST_COMMIT" \
+            --title "$COPY_DIR: sync to repo3's $LATEST_COMMIT" \
             --head "$BRANCH_NAME" \
             --base "main"
+            -a @irregulator
